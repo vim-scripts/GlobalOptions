@@ -1,0 +1,130 @@
+*GlobalOptions.txt*     Turn global options into buffer- or window-local ones.
+
+		       GLOBAL OPTIONS    by Ingo Karkat
+							   *GlobalOptions.vim*
+description			|GlobalOptions-description|
+usage				|GlobalOptions-usage|
+installation			|GlobalOptions-installation|
+limitations			|GlobalOptions-limitations|
+known problems			|GlobalOptions-known-problems|
+todo				|GlobalOptions-todo|
+history				|GlobalOptions-history|
+
+==============================================================================
+DESCRIPTION					   *GlobalOptions-description*
+
+For some Vim options, it may be helpful to make a particular setting only for
+certain buffers or windows. Some options offer this, but when the option is
+only globally scoped, this cannot be easily done.
+For example, the 'scrolloff' option can be set to a high value to effectively
+center the current line in the middle of the window. But one may only want
+this for certain filetypes, or only in a particular window.
+
+HOW IT WORKS								     *
+
+When a buffer- or window-local global option is set, autocmds are set up that
+modify the global option depending on the currently active buffer / window.
+Because there can be buffer-local autocmds, but not window-local ones, the
+approach taken is slightly different.
+
+==============================================================================
+USAGE							 *GlobalOptions-usage*
+
+							     *:SetBufferLocal*
+:SetBufferLocal
+			Show all global options made buffer-local.
+:SetBufferLocal {option}?
+			Show the buffer-local value of global {option} (if
+			set).
+:SetBufferLocal {option}={value}
+			Set the global {option} to {value}, but only in the
+			current buffer. Effectively turns {option} into a
+			buffer-local option.
+:SetBufferLocal {option}<
+			Remove the buffer-local value of {option}, so that the
+			global value will be used. Like |:setlocal| {option}<
+
+							     *:SetWindowLocal*
+:SetWindowLocal
+			Show all global options made window-local.
+:SetWindowLocal {option}?
+			Show the window-local value of global {option} (if
+			set).
+:SetWindowLocal {option}={value}
+			Set the global {option} to {value}, but only in the
+			current window. Effectively turns {option} into a
+			window-local option.
+:SetWindowLocal {option}<
+			Remove the window-local value of {option}, so that the
+			global value will be used. Like |:setlocal| {option}<
+
+							   *GlobalOptions-API*
+Alternatively, you can also directly use the following API functions.
+Note that these do less error checking than above commands. >
+GlobalOptions#SetBufferLocal({option}, {value})
+GlobalOptions#ClearBufferLocal({option})
+GlobalOptions#SetWindowLocal({option}, {value})
+GlobalOptions#ClearWindowLocal({option})
+
+EXAMPLE						       *GlobalOptions-example*
+
+Place the current line in the middle of the window by setting 'scrolloff' (a
+global option) to a large value, but only for the current window: >
+    :SetWindowLocal scrolloff=999
+<
+Place the current line in the middle of the window by setting 'scrolloff' (a
+global option) to a large value, but only for a certain filetype (best placed
+into ~/.vim/ftplugin/{filetype}.vim): >
+    :call GlobalOptions#SetBufferLocal('scrolloff', 999)
+    :let b:undo_ftplugin = 'call GlobalOptions#ClearBufferLocal("scrolloff")'
+Note that we use the API function in the undo command to avoid an error when
+the buffer-local option has already been unset. (And also for setting it, to
+be consistent and because it's slightly more efficient.)
+
+==============================================================================
+INSTALLATION					  *GlobalOptions-installation*
+
+This script is packaged as a |vimball|. If you have the "gunzip" decompressor
+in your PATH, simply edit the *.vmb.gz package in Vim; otherwise, decompress
+the archive first, e.g. using WinZip. Inside Vim, install by sourcing the
+vimball or via the |:UseVimball| command. >
+    vim GlobalOptions*.vmb.gz
+    :so %
+To uninstall, use the |:RmVimball| command.
+
+DEPENDENCIES					  *GlobalOptions-dependencies*
+
+- Requires Vim 7.0 or higher.
+
+==============================================================================
+LIMITATIONS					   *GlobalOptions-limitations*
+
+- The plugin's correct operation depends on the execution of its autocmds.
+  Mappings or other plugins that modify 'eventignore' or issue commands with
+  |:noautocmd| can disturb this.
+- Similarly, functionality that saves / restores windows (e.g. ZoomWin) might
+  mess with the window-local plugin variable. Same might apply to session save
+  and restore.
+
+KNOWN PROBLEMS					*GlobalOptions-known-problems*
+
+TODO							  *GlobalOptions-todo*
+
+IDEAS							 *GlobalOptions-ideas*
+
+==============================================================================
+HISTORY						       *GlobalOptions-history*
+
+1.00	25-Jan-2013
+First published version.
+
+0.01	26-Dec-2012
+Started development.
+
+==============================================================================
+Copyright: (C) 2012-2013 Ingo Karkat
+The VIM LICENSE applies to this script; see |copyright|.
+
+Maintainer:	Ingo Karkat <ingo@karkat.de>
+==============================================================================
+ vim:tw=78:ts=8:ft=help:norl:
